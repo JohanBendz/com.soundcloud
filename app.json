@@ -1,0 +1,22 @@
+{
+	"id": "com.soundcloud",
+	"version": "1.0",
+	"name": {
+		"en": "SoundCloud"
+	},
+	"description": {
+		"en": "Play your favorite music from SoundCloud on Homey"
+	},
+	"author": {
+		"name": "Emile Nijssen",
+		"website": "http://www.emilenijssen.nl"
+	},
+	"images": {
+		"large": "large.jpg",
+		"small": "small.jpg"
+	},
+	"media": [ "play", "pause", "search" ],
+	"dependencies": {
+		"node-soundcloud": "*"
+	}
+}
