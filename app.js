@@ -38,8 +38,6 @@ App.prototype.init = function(){
 				});
 			});
 			
-			Homey.log('result', result)
-			
 			callback( result );
 			
 		});
