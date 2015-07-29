@@ -20,9 +20,9 @@ App.prototype.init = function(){
 		uri		: config.redirect_uri
 	});
 	
-	Homey.manager('media').on('search', function( args, callback ){
+	Homey.manager('media').on('search', function( query, callback ){
 	
-		SC.get('/tracks', { q: args.query }, function(err, tracks) {
+		SC.get('/tracks', { q: query }, function(err, tracks) {
 			
 			var result = [];
 			
@@ -43,5 +43,31 @@ App.prototype.init = function(){
 		});
 		
 	})
+	
+	Homey.manager('media').on('play', function( track_id, callback ){
+		
+		if( !track_id ) return;
+		
+		SC.get('/tracks/' + track_id, function(err, track) {
+			
+			Homey.manager('media').setTrack({
+				id			: track.id,
+				title		: track.title,
+				artist		: track.user.username,
+				album		: false,
+				duration	: track.duration,
+				artwork		: track.artwork_url
+			});
+			
+			Homey.log(track)
+			
+			callback();
+			
+		});
+		
+		/*
+		Homey.log( 'play', track_id )
+		*/
+	});
 	
 }
