@@ -1,6 +1,6 @@
 {
 	"id": "com.soundcloud",
-	"version": "1.0.0",
+	"version": "0.1.0",
 	"compatibility": "0.x || 1.x",
 	"category": "music",
 	"name": {
