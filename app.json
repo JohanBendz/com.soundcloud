@@ -2,6 +2,7 @@
 	"id": "com.soundcloud",
 	"version": "1.0.0",
 	"compatibility": "0.x || 1.x",
+	"category": "music",
 	"name": {
 		"en": "SoundCloud"
 	},
@@ -13,6 +14,8 @@
 		"website": "http://www.emilenijssen.nl"
 	},
 	"images": {
+		"large": "./assets/images/large.jpg",
+		"small": "./assets/images/small.jpg"
 	},
 	"media": [ "play", "pause", "search" ],
 	"dependencies": {
