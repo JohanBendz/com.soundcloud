@@ -13,13 +13,34 @@ var self = module.exports = {
 			uri		: Homey.env.redirect_uri
 		});
 		
-		Homey.manager('media').on('search', function( query, callback ){
-		
-			SC.get('/tracks', { q: query }, function(err, tracks) {
+		Homey.manager('media').on('search', function( parsedQuery, callback ){
+			
+			console.log('parsedQuery', parsedQuery)
+			
+			var searchQuery = '';			
+			
+			if( parsedQuery.artist || parsedQuery.track || parsedQuery.album ) {
+				if( parsedQuery.artist ) searchQuery += ' ' + parsedQuery.artist;				
+				if( parsedQuery.track ) searchQuery += ' ' + parsedQuery.track;
+				if( parsedQuery.album ) searchQuery += ' ' + parsedQuery.album;
+				
+				if( parsedQuery.fuzzyCategory.artist || parsedQuery.fuzzyCategory.album || parsedQuery.fuzzyCategory.track ) {
+					searchQuery += ' ' + parsedQuery.fuzzy;
+				}
+			} else if( parsedQuery.genre ) {
+				searchQuery = parsedQuery.genre;				
+			} else {
+				searchQuery = parsedQuery.query;
+			}
+								
+			SC.get('/tracks', { q: searchQuery, limit: 50 }, function(err, tracks) {
 				
 				var result = [];
 				
 				tracks.forEach(function(track){
+										
+					if( !track.streamable ) return;
+					
 					result.push({
 						type		: 'track',
 						id			: track.id,
@@ -27,7 +48,8 @@ var self = module.exports = {
 						artist		: track.user.username,
 						album		: false,
 						duration	: track.duration,
-						artwork		: track.artwork_url
+						artwork		: track.artwork_url,
+						confidence	: 0.5
 					});
 				});
 				
@@ -44,7 +66,7 @@ var self = module.exports = {
 			if( !track_id ) return;
 			
 			SC.get('/tracks/' + track_id, function(err, track) {
-				
+												
 				Homey.manager('media').setTrack({
 					id			: track.id,
 					title		: track.title,
@@ -54,6 +76,8 @@ var self = module.exports = {
 					artwork		: track.artwork_url,
 					stream_url	: track.stream_url + '?client_id=' + Homey.env.client_id
 				});
+				
+				callback( null, true );
 				
 			});
 			
