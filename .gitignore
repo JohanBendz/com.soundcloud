@@ -1,6 +1,3 @@
-# nodejs files
-node_modules
-
 # homey files
 userdata
 userconf.json
