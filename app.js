@@ -8,9 +8,9 @@ var self = module.exports = {
 		 
 		// Initialize client
 		SC.init({
-			id		: Homey.env.client_id,
-			secret	: Homey.env.client_secret,
-			uri		: Homey.env.redirect_uri
+			id		: Homey.env.CLIENT_ID,
+			secret	: Homey.env.CLIENT_SECRET,
+			uri		: Homey.env.REDIRECT_URI
 		});
 		
 		Homey.manager('media').on('search', function( parsedQuery, callback ){
@@ -74,7 +74,7 @@ var self = module.exports = {
 					album		: false,
 					duration	: track.duration,
 					artwork		: track.artwork_url,
-					stream_url	: track.stream_url + '?client_id=' + Homey.env.client_id
+					stream_url	: track.stream_url + '?client_id=' + Homey.env.CLIENT_ID
 				});
 				
 				callback( null, true );
