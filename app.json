@@ -17,7 +17,7 @@
 		"large": "./assets/images/large.jpg",
 		"small": "./assets/images/small.jpg"
 	},
-	"media": [ "play", "pause", "search" ],
+	"media": [ "play", "search", "getPlaylists", "getPlaylist" ],
 	"dependencies": {
 		"node-soundcloud": "*"
 	}

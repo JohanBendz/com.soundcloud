@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+
+</head>
+<body>
+
+<h1 data-i18n="settings.title"></h1>
+
+<p>
+    <button id="oauth2">Connect with SoundCloud</button>
+</p>
+
+<script type="text/javascript">
+    document.getElementById('oauth2').addEventListener('click', function () {
+        Homey.api('GET', '/oauth2', function ( err, result ) {
+            if( err ) return Homey.alert( err.message || err.toString(), 'error' );
+            window.open( result );
+        })
+    })
+</script>
+
+<script type="text/javascript">
+    function onHomeyReady(){
+        Homey.ready()
+    }
+</script>
+
+</body>
+</html>
