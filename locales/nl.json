@@ -1,0 +1,10 @@
+{
+  "settings": {
+    "title": "SoundCloud Instellingen",
+    "warning": "Er is iets fout gegaan, probeer het nog eens",
+    "auth": {
+      "authorize": "Koppel met SoundCloud",
+      "deauthorize": "Ontkoppel van SoundCloud"
+    }
+  }
+}

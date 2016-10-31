@@ -1,6 +1,10 @@
 {
   "settings": {
     "title": "SoundCloud Settings",
-    "warning": "Something went wrong, please try again"
+    "warning": "Something went wrong, please try again",
+    "auth": {
+      "authorize": "Connect with SoundCloud",
+      "deauthorize": "Disconnect from SoundCloud"
+    }
   }
 }

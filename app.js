@@ -12,12 +12,24 @@ const soundCloud = require('node-soundcloud');
  * from the Homey Media Manager.
  */
 function init() {
-	// Initialize the soundCloud client
-	soundCloud.init({
-		id: Homey.env.CLIENT_ID,
-		secret: Homey.env.CLIENT_SECRET,
-		uri: Homey.env.REDIRECT_URI,
-	});
+	/*
+	 * Initialize the SoundCloud client with a previously obtained accessToken whenever possible.
+	 */
+	const accessToken = Homey.manager('settings').get('accessToken');
+	if (accessToken) {
+		soundCloud.init({
+			id: Homey.env.CLIENT_ID,
+			secret: Homey.env.CLIENT_SECRET,
+			uri: Homey.env.REDIRECT_URI,
+			accessToken: accessToken,
+		});
+	} else {
+		soundCloud.init({
+			id: Homey.env.CLIENT_ID,
+			secret: Homey.env.CLIENT_SECRET,
+			uri: Homey.env.REDIRECT_URI,
+		});
+	}
 
 	/*
 	 * Respond to a search request by returning an array of parsed search results
@@ -131,13 +143,18 @@ function startOAuth2(callback) {
 
 			soundCloud.authorize(code, (err, accessToken) => {
 				if (err) {
-					return console.error(err);
+					return Homey.error(err);
 				}
+
+				// store accessToken for future use
+				Homey.manager('settings').set('accessToken', accessToken);
+				Homey.manager('settings').set('authorized', true);
+				Homey.manager('api').realtime('authorized', true);
 
 				// Client is now authorized and able to make API calls
 				soundCloud.get('/me/playlists', { oauth_token: soundCloud.accessToken, streamable: true }, (err, playlists) => {
 					if (err) {
-						return console.error(err);
+						return Homey.error(err);
 					}
 
 					if (playlists) {
@@ -149,6 +166,22 @@ function startOAuth2(callback) {
 			});
 		}
 	);
+}
+
+/**
+ * We deauthorize this media app to use the account specific information
+ * it once had access to by resetting our token and notifying Homey Media
+ * the new status.
+ * @param callback
+ */
+function deauthorize(callback) {
+	soundCloud.isAuthorized = false;
+	soundCloud.accessToken = undefined;
+	Homey.manager('settings').set('accessToken', undefined);
+	Homey.manager('settings').set('authorized', false);
+
+	Homey.manager('media').pushPlaylists([]);
+	return callback();
 }
 
 /**
@@ -169,8 +202,8 @@ function getProfile(callback) {
 		const result = {
 			type: 'profile',
 			username: profile.username,
-			avatar: parseImage(profile.avatar_url),
-			country: profile.country,
+			avatar: profile.avatar_url,
+			country: profile.country || 'unknown',
 			plan: profile.plan,
 			playlist_count: profile.playlist_count,
 			private_playlist_count: profile.private_playlist_count,
@@ -307,5 +340,6 @@ function parseTracks(tracks) {
 module.exports = {
 	init,
 	startOAuth2,
+	deauthorize,
 	getProfile,
 };

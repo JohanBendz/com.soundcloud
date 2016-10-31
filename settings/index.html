@@ -7,22 +7,76 @@
 
 <h1 data-i18n="settings.title"></h1>
 
-<p>
-    <button id="oauth2">Connect with SoundCloud</button>
-</p>
+<div id="content">
+    <div id="deauthorize-container">
+        <fieldset>
+            <div id="account"></div>
+        </fieldset>
+
+        <fieldset>
+            <button id="deauthorize" data-i18n="settings.auth.deauthorize"></button>
+        </fieldset>
+    </div>
+    <div id="authorize-container">
+        <fieldset>
+            <button id="oauth2" data-i18n="settings.auth.authorize"></button>
+        </fieldset>
+    </div>
+</div>
 
 <script type="text/javascript">
     document.getElementById('oauth2').addEventListener('click', function () {
-        Homey.api('GET', '/oauth2', function ( err, result ) {
+        Homey.api('GET', '/oauth2', function (err, result) {
             if( err ) return Homey.alert( err.message || err.toString(), 'error' );
             window.open( result );
+        })
+    });
+
+    document.getElementById('deauthorize').addEventListener('click', function () {
+        Homey.api('POST', '/deauthorize', function (err, result) {
+            if( err ) return Homey.alert( err.message || err.toString(), 'error' );
+            setAuthorizationState(false);
         })
     })
 </script>
 
 <script type="text/javascript">
     function onHomeyReady(){
-        Homey.ready()
+        Homey.get('authorized', function (err, result) {
+            if(err) return setAuthorizationState(false);
+            setAuthorizationState(result);
+            Homey.ready();
+        });
+
+        Homey.on('authorized', function (authorized) {
+            setAuthorizationState(authorized);
+        });
+    }
+
+    function setAuthorizationState(authorized) {
+        var deauthorizeContainer = document.getElementById('deauthorize-container');
+        var authorizeContainer = document.getElementById('authorize-container');
+        var accountContainer = document.getElementById('account');
+
+        if (authorized) {
+            authorizeContainer.style.display = 'none';
+            accountContainer.innerHTML = '';
+            deauthorizeContainer.style.display = 'block';
+            Homey.api('GET', '/profile', function (err, profile) {
+                accountContainer.innerHTML = '<div>' +
+                        '<img src="' + profile.avatar + '" />' +
+                        '<p>' +
+                        '<div> Username: ' + profile.username + '</div>' +
+                        '<div> Country: ' + profile.country +'</div>' +
+                        '<div> Playlist Count: ' + profile.playlist_count + '</div>' +
+                        '</p>' +
+                        '' +
+                        '</div>';
+            });
+        } else {
+            deauthorizeContainer.style.display = 'none';
+            authorizeContainer.style.display = 'block';
+        }
     }
 </script>
 
