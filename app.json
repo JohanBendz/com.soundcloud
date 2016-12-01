@@ -1,7 +1,7 @@
 {
 	"id": "com.soundcloud",
-	"version": "0.1.9",
-	"compatibility": "0.x || 1.x",
+	"version": "1.0.0",
+	"compatibility": "1.x",
 	"category": "music",
 	"name": {
 		"en": "SoundCloud"

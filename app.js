@@ -32,6 +32,12 @@ function init() {
 	}
 
 	/*
+	 * Homey needs to know what formats it can request from this media app so whenever this changes the app
+	 * should notify the Homey Media component with the new codecs.
+	 */
+	Homey.manager('media').change({ codecs: 'MP3' });
+
+	/*
 	 * Respond to a search request by returning an array of parsed search results
 	 */
 	Homey.manager('media').on('search', (parsedQuery, callback) => {
@@ -54,10 +60,12 @@ function init() {
 	});
 
 	/*
-	 * Respond to a play request by returning a parsed track object
+	 * Respond to a play request by returning a parsed track object.
+	 * The request object contains a trackId and a format property to indicate what specific
+	 * resource and in what format is wanted for playback.
 	 */
-	Homey.manager('media').on('play', (track_id, callback) => {
-		soundCloud.get(`/tracks/${track_id}`, (err, track) => {
+	Homey.manager('media').on('play', (request, callback) => {
+		soundCloud.get(`/tracks/${request.trackId}`, (err, track) => {
 			if (err) {
 				return callback(err);
 			}
@@ -70,7 +78,7 @@ function init() {
 	 * Homey can periodically request static playlist that are available through
 	 * the streaming API (when applicable)
 	 */
-	Homey.manager('media').on('getPlaylists', (callback) => {
+	Homey.manager('media').on('getPlaylists', (data, callback) => {
 		if (!soundCloud.isAuthorized) {
 			return callback(new Error('could not fetch playlist, user is not authenticated'));
 		}
@@ -78,7 +86,7 @@ function init() {
 
 		soundCloud.get('/me/playlists', { oauth_token: soundCloud.accessToken, streamable: true }, (err, playlists) => {
 			if (!playlists) {
-				callback(null, []);
+				return callback(null, []);
 			}
 			playlists.forEach((playlist) => {
 				results.push({
@@ -94,7 +102,7 @@ function init() {
 	});
 
 	/*
-	 * Homey might alternatively request a specific playlist so it can be refreshed
+	 * Homey might request a specific playlist so it can be refreshed
 	 */
 	Homey.manager('media').on('getPlaylist', (request, callback) => {
 		if (!soundCloud.isAuthorized) {
@@ -158,9 +166,8 @@ function startOAuth2(callback) {
 					}
 
 					if (playlists) {
-						playlists.forEach((playlist) => {
-							pushPlaylist(playlist);
-						});
+						// sends a request to the Homey Media component to refresh static playlists
+						Homey.manager('media').requestPlaylistUpdate();
 					}
 				});
 			});
@@ -180,7 +187,7 @@ function deauthorize(callback) {
 	Homey.manager('settings').set('accessToken', undefined);
 	Homey.manager('settings').set('authorized', false);
 
-	Homey.manager('media').pushPlaylists([]);
+	Homey.manager('media').requestPlaylistUpdate();
 	return callback();
 }
 
@@ -210,20 +217,6 @@ function getProfile(callback) {
 		};
 
 		return callback(null, result);
-	});
-}
-
-/**
- * Pushes a playlist to the Media Manager
- *
- * @param playlist
- */
-function pushPlaylist(playlist) {
-	Homey.manager('media').pushPlaylist({
-		type: 'playlist',
-		id: playlist.id,
-		title: playlist.title,
-		tracks: parseTracks(playlist.tracks) || false,
 	});
 }
 
@@ -308,7 +301,7 @@ function parseTrack(track) {
 		artwork: parseImage(track.artwork_url),
 		genre: track.genre,
 		release_date: `${track.release_year}-${track.release_month}-${track.release_day}`,
-		format: 'mp3',
+		format: ['mp3'],
 		bpm: track.bpm,
 	};
 
