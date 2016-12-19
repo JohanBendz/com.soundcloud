@@ -40,14 +40,12 @@ function init() {
 	/*
 	 * Respond to a search request by returning an array of parsed search results
 	 */
-	Homey.manager('media').on('search', (parsedQuery, callback) => {
-		// Perform our own selective parsing on the parsedQuery
-		const searchQuery = parseSearchQuery(parsedQuery);
+	Homey.manager('media').on('search', (query, callback) => {
 		/*
 		 * Execute a search using the soundCloud client.
 		 * Since we are only interested in streamable results we apply filters.
 		 */
-		soundCloud.get('/tracks', { q: searchQuery, streamable: true, limit: 10 }, (err, tracks) => {
+		soundCloud.get('/tracks', { q: query, streamable: true, limit: 10 }, (err, tracks) => {
 			if (err) {
 				Homey.log('soundcloud err', err);
 				return callback(err);
@@ -239,38 +237,6 @@ function parseImage(artworkUrl) {
 		medium: artworkUrl.replace('-large', '-t300x300'),
 		large: artworkUrl.replace('-large', '-t500x500'),
 	};
-}
-
-/**
- * Further parses the parsedQuery received from Homey. If no parse properties are found
- * the raw query is used instead.
- *
- * @param parsedQuery
- * @returns {queryString}
- */
-function parseSearchQuery(parsedQuery) {
-	let searchQuery = '';
-
-	if (parsedQuery.artist || parsedQuery.track || parsedQuery.album) {
-		if (parsedQuery.artist) {
-			searchQuery += ` ${parsedQuery.artist}`;
-		}
-		if (parsedQuery.track) {
-			searchQuery += ` ${parsedQuery.track}`;
-		}
-		if (parsedQuery.album) {
-			searchQuery += ` ${parsedQuery.album}`;
-		}
-		if (parsedQuery.fuzzyCategory.artist || parsedQuery.fuzzyCategory.album || parsedQuery.fuzzyCategory.track) {
-			searchQuery += ` ${parsedQuery.fuzzy}`;
-		}
-	} else if (parsedQuery.genre) {
-		searchQuery = parsedQuery.genre;
-	} else {
-		searchQuery = parsedQuery.query;
-	}
-
-	return searchQuery;
 }
 
 /**
