@@ -267,7 +267,7 @@ function parseTrack(track) {
 		artwork: parseImage(track.artwork_url),
 		genre: track.genre,
 		release_date: `${track.release_year}-${track.release_month}-${track.release_day}`,
-		format: ['mp3'],
+		format: ['homey:codec:mp3'],
 		bpm: track.bpm,
 	};
 
