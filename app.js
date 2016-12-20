@@ -35,7 +35,7 @@ function init() {
 	 * Homey needs to know what formats it can request from this media app so whenever this changes the app
 	 * should notify the Homey Media component with the new codecs.
 	 */
-	Homey.manager('media').change({ codecs: 'MP3' });
+	Homey.manager('media').change({ codecs: 'homey:codec:mp3' });
 
 	/*
 	 * Respond to a search request by returning an array of parsed search results
