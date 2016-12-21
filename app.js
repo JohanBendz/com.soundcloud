@@ -107,7 +107,7 @@ function init() {
 			return callback(new Error('could not fetch playlist, user is not authenticated'));
 		}
 
-		soundCloud.get(`/me/playlists/${request}`, { oauth_token: soundCloud.accessToken, streamable: true }, (err, playlist) => {
+		soundCloud.get(`/me/playlists/${request.playlistId}`, { oauth_token: soundCloud.accessToken, streamable: true }, (err, playlist) => {
 			if (err) {
 				return callback(err);
 			}
@@ -255,7 +255,7 @@ function parseImage(artworkUrl) {
 function parseTrack(track) {
 	const result = {
 		type: 'track',
-		id: track.id,
+		id: track.id.toString(),
 		title: track.title,
 		artist: [
 			{
