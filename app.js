@@ -1,6 +1,7 @@
 'use strict';
 
 const soundCloud = require('node-soundcloud');
+const request = require('request');
 
 /**
  * Initialize SoundCloud app with the necessary information:
@@ -62,13 +63,20 @@ function init() {
 	 * The request object contains a trackId and a format property to indicate what specific
 	 * resource and in what format is wanted for playback.
 	 */
-	Homey.manager('media').on('play', (request, callback) => {
-		soundCloud.get(`/tracks/${request.trackId}`, (err, track) => {
+	Homey.manager('media').on('play', (track, callback) => {
+		soundCloud.get(`/tracks/${track.trackId}`, (err, trackData) => {
 			if (err) {
 				return callback(err);
 			}
-			const result = parseTrack(track);
-			callback(err, result);
+			const result = parseTrack(trackData);
+
+			// Follow stream_url to redirect url to support speakers that do not follow redirect urls
+			request(result.stream_url, { method: 'HEAD', timeout: 2000 }, (err, res) => {
+				if (err) return callback(err);
+
+				result.stream_url = res.request.uri.href;
+				callback(err, result);
+			});
 		});
 	});
 
@@ -107,7 +115,10 @@ function init() {
 			return callback(new Error('could not fetch playlist, user is not authenticated'));
 		}
 
-		soundCloud.get(`/me/playlists/${request.playlistId}`, { oauth_token: soundCloud.accessToken, streamable: true }, (err, playlist) => {
+		soundCloud.get(`/me/playlists/${request.playlistId}`, {
+			oauth_token: soundCloud.accessToken,
+			streamable: true
+		}, (err, playlist) => {
 			if (err) {
 				return callback(err);
 			}

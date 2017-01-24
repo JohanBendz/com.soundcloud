@@ -4,3 +4,6 @@ userconf.json
 
 # client id & secret
 env.json
+
+# Webstorm files
+.idea
