@@ -75,7 +75,7 @@ function init() {
 				if (err) return callback(err);
 
 				result.stream_url = res.request.uri.href;
-				callback(err, result);
+				return callback(err, result);
 			});
 		});
 	});
