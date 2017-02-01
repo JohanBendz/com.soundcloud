@@ -28,19 +28,21 @@
 </div>
 
 <script type="text/javascript">
-    document.getElementById('oauth2').addEventListener('click', function () {
-        Homey.api('GET', '/oauth2', function (err, result) {
-            if( err ) return Homey.alert( err.message || err.toString(), 'error' );
-            window.open( result );
-        })
-    });
+	window.onload = function () {
+		document.getElementById('oauth2').addEventListener('click', function () {
+			Homey.api('GET', '/oauth2', function (err, result) {
+				if (err) return Homey.alert(err.message || err.toString(), 'error');
+				window.open(result);
+			})
+		});
 
-    document.getElementById('deauthorize').addEventListener('click', function () {
-        Homey.api('POST', '/deauthorize', function (err, result) {
-            if( err ) return Homey.alert( err.message || err.toString(), 'error' );
-            setAuthorizationState(false);
-        })
-    })
+		document.getElementById('deauthorize').addEventListener('click', function () {
+			Homey.api('POST', '/deauthorize', function (err, result) {
+				if (err) return Homey.alert(err.message || err.toString(), 'error');
+				setAuthorizationState(false);
+			})
+		});
+	}
 </script>
 
 <script type="text/javascript">
