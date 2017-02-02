@@ -33,7 +33,7 @@ function init() {
 	}
 
 	/*
-	 * Homey needs to know what formats it can request from this media app so whenever this changes the app
+	 * Homey needs to know what codecs it can request from this media app so whenever this changes the app
 	 * should notify the Homey Media component with the new codecs.
 	 */
 	Homey.manager('media').change({ codecs: 'homey:codec:mp3' });
@@ -53,15 +53,15 @@ function init() {
 			}
 			if (tracks) {
 				const result = parseTracks(tracks);
-				callback(null, result);
+				return callback(null, result);
 			}
 		});
 	});
 
 	/*
 	 * Respond to a play request by returning a parsed track object.
-	 * The request object contains a trackId and a format property to indicate what specific
-	 * resource and in what format is wanted for playback.
+	 * The request object contains a trackId and a codec property to indicate what specific
+	 * resource and in what codec is wanted for playback.
 	 */
 	Homey.manager('media').on('play', (track, callback) => {
 		soundCloud.get(`/tracks/${track.trackId}`, (err, trackData) => {
@@ -103,7 +103,7 @@ function init() {
 				});
 			});
 
-			callback(null, results);
+			return callback(null, results);
 		});
 	});
 
@@ -257,7 +257,7 @@ function parseImage(artworkUrl) {
  * - The search format comes with a confidence property ranging between 0 and 1.0
  *   that indicates how strong of a match the parsed Track is to the original search query.
  *   When in doubt simply use 0.5 as a neutral rating.
- * - The play format has a stream_url property that contains the url that Homey
+ * - The play codec has a stream_url property that contains the url that Homey
  *   can use to stream the content.
  *
  * @param track to parse
@@ -278,7 +278,7 @@ function parseTrack(track) {
 		artwork: parseImage(track.artwork_url),
 		genre: track.genre,
 		release_date: `${track.release_year}-${track.release_month}-${track.release_day}`,
-		format: ['homey:codec:mp3'],
+		codecs: ['homey:codec:mp3'],
 		bpm: track.bpm,
 	};
 
