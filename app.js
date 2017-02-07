@@ -69,6 +69,7 @@ function init() {
 				return callback(err);
 			}
 			const result = parseTrack(trackData);
+			result.stream_url = `${trackData.stream_url}?client_id=${Homey.env.CLIENT_ID}`;
 
 			// Follow stream_url to redirect url to support speakers that do not follow redirect urls
 			request(result.stream_url, { method: 'HEAD', timeout: 2000 }, (err, res) => {
@@ -264,7 +265,7 @@ function parseImage(artworkUrl) {
  * @returns {parsedTrack}
  */
 function parseTrack(track) {
-	const result = {
+	return {
 		type: 'track',
 		id: track.id.toString(),
 		title: track.title,
@@ -280,15 +281,7 @@ function parseTrack(track) {
 		release_date: `${track.release_year}-${track.release_month}-${track.release_day}`,
 		codecs: ['homey:codec:mp3'],
 		bpm: track.bpm,
-	};
-
-	if (typeof track.stream_url !== 'undefined') {
-		result.stream_url = `${track.stream_url}?client_id=${Homey.env.CLIENT_ID}`;
-	} else {
-		result.confidence = 0.5;
 	}
-
-	return result;
 }
 
 
@@ -299,7 +292,9 @@ function parseTracks(tracks) {
 	}
 
 	tracks.forEach((track) => {
-		result.push(parseTrack(track));
+		const parsedTrack = parseTrack(track);
+		parsedTrack.confidence = 0.5;
+		result.push(parsedTrack);
 	});
 
 	return result;
