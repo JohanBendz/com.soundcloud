@@ -2,6 +2,7 @@
 
 const soundCloud = require('node-soundcloud');
 const request = require('request');
+let pollingInterval = false;
 
 /**
  * Initialize SoundCloud app with the necessary information:
@@ -41,12 +42,13 @@ function init() {
 	/*
 	 * Respond to a search request by returning an array of parsed search results
 	 */
-	Homey.manager('media').on('search', (query, callback) => {
+	Homey.manager('media').on('search', (queryObject, callback) => {
+		const query = parseSearchQuery(queryObject);
 		/*
 		 * Execute a search using the soundCloud client.
 		 * Since we are only interested in streamable results we apply filters.
 		 */
-		soundCloud.get('/tracks', { q: query, streamable: true, limit: 10 }, (err, tracks) => {
+		soundCloud.get('/tracks', query, (err, tracks) => {
 			if (err) {
 				Homey.log('soundcloud err', err);
 				return callback(err);
@@ -178,6 +180,7 @@ function startOAuth2(callback) {
 					if (playlists) {
 						// sends a request to the Homey Media component to refresh static playlists
 						Homey.manager('media').requestPlaylistUpdate();
+						startPollingForUpdates();
 					}
 				});
 			});
@@ -198,6 +201,7 @@ function deauthorize(callback) {
 	Homey.manager('settings').set('authorized', false);
 
 	Homey.manager('media').requestPlaylistUpdate();
+	stopPollingForUpdates();
 	return callback();
 }
 
@@ -252,6 +256,27 @@ function parseImage(artworkUrl) {
 }
 
 /**
+ * Further parses the parsedQuery received from Homey. If no parse properties are found
+ * the raw query is used instead.
+ *
+ * @param parsedQuery
+ * @returns {queryObject}
+ */
+function parseSearchQuery(parsedQuery) {
+	let searchObject = { q: parsedQuery.searchQuery, streamable: true, limit: 10 };
+	if (parsedQuery.genre) {
+		searchObject.genres = parsedQuery.genre;
+		if (parsedQuery.track) {
+			searchObject.q = parsedQuery.track;
+		} else {
+			searchObject.q = '*';
+		}
+	}
+
+	return searchObject;
+}
+
+/**
  * Parses a raw track into a Homey readable format.
  * Note that the format is slightly different for search queries and play requests.
  *
@@ -298,6 +323,35 @@ function parseTracks(tracks) {
 	});
 
 	return result;
+}
+
+/**
+ * Polls SoundCloud for an update every two minutes
+ */
+function startPollingForUpdates() {
+	pollingInterval = setInterval(() => {
+		// Client is now authorized and able to make API calls
+		soundCloud.get('/me/playlists', { oauth_token: soundCloud.accessToken, streamable: true }, (err, playlists) => {
+			if (err) {
+				return Homey.error(err);
+			}
+
+			if (playlists) {
+				// sends a request to the Homey Media component to refresh static playlists
+				Homey.manager('media').requestPlaylistUpdate();
+			}
+			Homey.log('soundcloud polled for updates');
+		});
+	}, 120000);
+
+}
+
+/**
+ * Stops asking SoundCloud for updates
+ */
+function stopPollingForUpdates() {
+	clearInterval(pollingInterval);
+	pollingInterval = false;
 }
 
 /* ====================================================== */
