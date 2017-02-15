@@ -25,6 +25,9 @@ function init() {
 			uri: Homey.env.REDIRECT_URI,
 			accessToken: accessToken,
 		});
+		// sends a request to the Homey Media component to refresh static playlists
+		Homey.manager('media').requestPlaylistUpdate();
+		startPollingForUpdates();
 	} else {
 		soundCloud.init({
 			id: Homey.env.CLIENT_ID,
@@ -32,12 +35,6 @@ function init() {
 			uri: Homey.env.REDIRECT_URI,
 		});
 	}
-
-	/*
-	 * Homey needs to know what codecs it can request from this media app so whenever this changes the app
-	 * should notify the Homey Media component with the new codecs.
-	 */
-	Homey.manager('media').change({ codecs: 'homey:codec:mp3' });
 
 	/*
 	 * Respond to a search request by returning an array of parsed search results
@@ -114,20 +111,20 @@ function init() {
 	 * Homey might request a specific playlist so it can be refreshed
 	 */
 	Homey.manager('media').on('getPlaylist', (request, callback) => {
-		if (!soundCloud.isAuthorized) {
-			return callback(new Error('could not fetch playlist, user is not authenticated'));
-		}
-
-		soundCloud.get(`/me/playlists/${request.playlistId}`, {
-			oauth_token: soundCloud.accessToken,
-			streamable: true
-		}, (err, playlist) => {
-			if (err) {
-				return callback(err);
+				if (!soundCloud.isAuthorized) {
+				return callback(new Error('could not fetch playlist, user is not authenticated'));
 			}
 
-			const result = {
-				type: 'playlist',
+			soundCloud.get(`/me/playlists/${request.playlistId}`, {
+				oauth_token: soundCloud.accessToken,
+				streamable: true
+			}, (err, playlist) => {
+				if (err) {
+					return callback(err);
+				}
+
+				const result = {
+					type: 'playlist',
 				id: playlist.id,
 				title: playlist.title,
 				tracks: parseTracks(playlist.tracks) || false,
@@ -338,7 +335,7 @@ function startPollingForUpdates() {
 
 			if (playlists) {
 				// sends a request to the Homey Media component to refresh static playlists
-				Homey.manager('media').requestPlaylistUpdate();
+				Homey.manager('media').requestPlaylistsUpdate();
 			}
 			Homey.log('soundcloud polled for updates');
 		});
