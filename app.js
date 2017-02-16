@@ -26,7 +26,7 @@ function init() {
 			accessToken: accessToken,
 		});
 		// sends a request to the Homey Media component to refresh static playlists
-		Homey.manager('media').requestPlaylistUpdate();
+		Homey.manager('media').requestPlaylistsUpdate();
 		startPollingForUpdates();
 	} else {
 		soundCloud.init({
@@ -176,7 +176,7 @@ function startOAuth2(callback) {
 
 					if (playlists) {
 						// sends a request to the Homey Media component to refresh static playlists
-						Homey.manager('media').requestPlaylistUpdate();
+						Homey.manager('media').requestPlaylistsUpdate();
 						startPollingForUpdates();
 					}
 				});
@@ -197,7 +197,7 @@ function deauthorize(callback) {
 	Homey.manager('settings').set('accessToken', undefined);
 	Homey.manager('settings').set('authorized', false);
 
-	Homey.manager('media').requestPlaylistUpdate();
+	Homey.manager('media').requestPlaylistsUpdate();
 	stopPollingForUpdates();
 	return callback();
 }
