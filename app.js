@@ -86,7 +86,7 @@ function init() {
 	 */
 	Homey.manager('media').on('getPlaylists', (data, callback) => {
 		if (!soundCloud.isAuthorized) {
-			return callback(new Error('could not fetch playlist, user is not authenticated'));
+			return callback(new Error('not_authenticated'));
 		}
 		const results = [];
 
@@ -112,7 +112,7 @@ function init() {
 	 */
 	Homey.manager('media').on('getPlaylist', (request, callback) => {
 				if (!soundCloud.isAuthorized) {
-				return callback(new Error('could not fetch playlist, user is not authenticated'));
+				return callback(new Error('not_authenticated'));
 			}
 
 			soundCloud.get(`/me/playlists/${request.playlistId}`, {
@@ -209,7 +209,7 @@ function deauthorize(callback) {
  */
 function getProfile(callback) {
 	if (!soundCloud.isAuthorized) {
-		return callback(new Error('could not fetch profile, user is not authenticated'));
+		return callback(new Error('not_authenticated'));
 	}
 
 	soundCloud.get('/me', { oauth_token: soundCloud.accessToken }, (err, profile) => {
