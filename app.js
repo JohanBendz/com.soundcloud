@@ -1,5 +1,7 @@
 'use strict';
 
+const logger = require('homey-log').Log;
+
 const soundCloud = require('node-soundcloud');
 const request = require('request');
 let pollingInterval = false;
