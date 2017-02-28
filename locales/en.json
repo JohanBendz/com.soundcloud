@@ -1,10 +1,12 @@
 {
-  "settings": {
-    "title": "SoundCloud Settings",
-    "warning": "Something went wrong, please try again",
-    "auth": {
-      "authorize": "Connect with SoundCloud",
-      "deauthorize": "Disconnect from SoundCloud"
-    }
-  }
+	"settings": {
+		"title": "SoundCloud Settings",
+		"warning": "Something went wrong, please try again",
+		"playlists": "Playlist__suffix__",
+		"playlists_plural": "s",
+		"auth": {
+			"authorize": "Connect with SoundCloud",
+			"deauthorize": "Disconnect from SoundCloud"
+		}
+	}
 }

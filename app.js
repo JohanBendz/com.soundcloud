@@ -194,7 +194,7 @@ function startOAuth2(callback) {
 function deauthorize(callback) {
 	soundCloud.isAuthorized = false;
 	soundCloud.accessToken = undefined;
-	Homey.manager('settings').set('accessToken', undefined);
+	Homey.manager('settings').unset('accessToken');
 	Homey.manager('settings').set('authorized', false);
 
 	Homey.manager('media').requestPlaylistsUpdate();

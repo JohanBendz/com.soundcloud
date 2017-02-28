@@ -2,88 +2,282 @@
 <html>
 <head>
 
+	<style type="text/css">
+		body {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.relative {
+			position: relative;
+		}
+
+		#content {
+			display: flex;
+			flex-grow: 1;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			text-align: center;
+		}
+
+		#avatar {
+			display: block;
+
+			width: 100px;
+			height: 100px;
+			border-radius: 100px;
+
+			background-repeat: no-repeat;
+			background-size: cover;
+			background-position: center center;
+
+			border: 1px solid #eee;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+			cursor: default;
+		}
+
+		body.authorized #avatar {
+			cursor: pointer;
+		}
+
+		#loading-wrap {
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			color: #aaa;
+
+			align-items: center;
+			justify-content: center;
+
+			display: none;
+		}
+
+		body.loading #loading-wrap {
+			display: flex;
+		}
+
+		#subscription-wrap {
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: -3px;
+		}
+
+		#subscription {
+			display: inline-block;
+			background: #f60;
+			color: white;
+			border-radius: 100px;
+			font-size: 11px;
+			padding: 0 0.4em;
+			text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+			line-height: 18px;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		}
+
+		#metadata > span {
+			display: block;
+		}
+
+		#name {
+			font-weight: 400;
+		}
+
+		#countryz {
+			font-style: italic;
+		}
+
+		body.authorized #authorize,
+		body:not(.authorized) #deauthorize,
+		body:not(.authorized) #metadata,
+		body:not(.authorized) #subscription {
+			display: none;
+		}
+	</style>
+
+	<script type="text/javascript">
+		var bodyEl;
+		var avatarEl;
+		var nameEl;
+		var countryEl;
+		var playlistCountEl;
+		var playlistCountLabelEl;
+		var subscriptionEl;
+		var authorizeEl;
+		var deauthorizeEl;
+
+		window.addEventListener('load', function () {
+
+			bodyEl = document.body;
+			avatarEl = document.getElementById('avatar');
+			nameEl = document.getElementById('name');
+			countryEl = document.getElementById('country');
+			playlistCountEl = document.getElementById('playlist_count');
+			playlistCountLabelEl = document.getElementById('playlist_count_label');
+			subscriptionEl = document.getElementById('subscription');
+			authorizeEl = document.getElementById('authorize');
+			deauthorizeEl = document.getElementById('deauthorize');
+
+			authorizeEl.addEventListener('click', authorize);
+			deauthorizeEl.addEventListener('click', deauthorize);
+		});
+
+		function onHomeyReady() {
+			Homey.get('authorized', function (err, result) {
+				if (err) {
+					setAuthorizationState(false);
+				} else {
+					setAuthorizationState(result);
+				}
+
+				Homey.ready();
+			});
+
+			Homey.on('authorized', setAuthorizationState);
+		}
+
+		function authorize() {
+			Homey.api('GET', '/oauth2', function (err, url) {
+				if (err) {
+					console.log('authorize err', err);
+					return error(__('settings.error.invalid_credentials'));
+				}
+
+				Homey.popup(url);
+			});
+		}
+
+		function deauthorize() {
+			Homey.api('POST', '/deauthorize', function (err, result) {
+				if (err) {
+					console.log('deauthorize err', err);
+					error(err);
+				}
+
+				setAuthorizationState(false);
+			});
+		}
+
+		function setAuthorizationState(authorized) {
+
+			bodyEl.classList.toggle('authorized', authorized);
+
+			if (authorized) {
+
+				bodyEl.classList.add('loading');
+
+				Homey.api('GET', '/profile', function (err, profile) {
+					if (err) return error(err);
+
+					bodyEl.classList.remove('loading');
+
+					if (profile.images
+						&& profile.images[0]
+						&& profile.images[0].url) {
+						avatarEl.style.backgroundImage = 'url(' + profile.images[0].url + ')'
+					} else {
+						avatarEl.style.backgroundImage = 'url(img/default.png)';
+					}
+
+					avatarEl.href = 'https://www.spotify.com/account/';
+
+					nameEl.textContent = profile.username || profile.id;
+					countryEl.textContent = profile.country;
+					playlistCountEl.textContent = profile.playlist_count;
+					playlistCountLabelEl.textContent = __(
+						'settings.playlists',
+						{ suffix: profile.playlist_count === 1 ? '' : __('settings.playlists_plural') }
+					);
+					subscriptionEl.textContent = __(profile.plan);
+				});
+			} else {
+				avatarEl.style.backgroundImage = 'url(img/default.png)';
+				avatarEl.href = 'javascript:void(0);';
+			}
+		}
+
+		function error(err) {
+			Homey.alert(err.message || err.toString(), 'error');
+		}
+	</script>
+
 </head>
 <body>
 
-<h1 data-i18n="settings.title"></h1>
-
 <div id="content">
-    <div>
-        <img src="../assets/images/small.jpg"/>
-    </div>
-    <div id="deauthorize-container">
-        <fieldset>
-            <div id="account"></div>
-        </fieldset>
 
-        <fieldset>
-            <button id="deauthorize" data-i18n="settings.auth.deauthorize"></button>
-        </fieldset>
-    </div>
-    <div id="authorize-container">
-        <fieldset>
-            <button id="oauth2" data-i18n="settings.auth.authorize"></button>
-        </fieldset>
-    </div>
+	<p class="relative">
+		<a id="avatar" target="_blank" href="javascript:void(0);"></a>
+
+		<span id="loading-wrap">
+					<i id="loading" class="fa fa-spinner fa-spin fa-2x fa-fw"></i>
+				</span>
+
+		<span id="subscription-wrap">
+					<span id="subscription"></span>
+				</span>
+	</p>
+
+	<p id="metadata">
+		<span id="name"></span>
+		<span id="country"></span>
+		<span><span id="playlist_count"></span> <span id="playlist_count_label" data-i18n="settings.playlists"></span></span>
+	</p>
+
+	<button id="authorize">
+		<i class="fa fa-sign-in" aria-hidden="true"></i>
+		<span data-i18n="settings.auth.authorize"></span>
+	</button>
+
+	<button id="deauthorize">
+		<i class="fa fa-sign-out" aria-hidden="true"></i>
+		<span data-i18n="settings.auth.deauthorize"></span>
+	</button>
+
 </div>
-
-<script type="text/javascript">
-	window.onload = function () {
-		document.getElementById('oauth2').addEventListener('click', function () {
-			Homey.api('GET', '/oauth2', function (err, result) {
-				if (err) return Homey.alert(err.message || err.toString(), 'error');
-                Homey.popup( result );
-			})
-		});
-
-		document.getElementById('deauthorize').addEventListener('click', function () {
-			Homey.api('POST', '/deauthorize', function (err, result) {
-				if (err) return Homey.alert(err.message || err.toString(), 'error');
-				setAuthorizationState(false);
-			})
-		});
-	}
-</script>
-
-<script type="text/javascript">
-    function onHomeyReady(){
-        Homey.get('authorized', function (err, result) {
-            if(err) return setAuthorizationState(false);
-            setAuthorizationState(result);
-            Homey.ready();
-        });
-
-        Homey.on('authorized', function (authorized) {
-            setAuthorizationState(authorized);
-        });
-    }
-
-    function setAuthorizationState(authorized) {
-        var deauthorizeContainer = document.getElementById('deauthorize-container');
-        var authorizeContainer = document.getElementById('authorize-container');
-        var accountContainer = document.getElementById('account');
-
-        if (authorized) {
-            authorizeContainer.style.display = 'none';
-            accountContainer.innerHTML = '';
-            deauthorizeContainer.style.display = 'block';
-            Homey.api('GET', '/profile', function (err, profile) {
-                accountContainer.innerHTML = '<div>' +
-                        '<img src="' + profile.avatar + '" />' +
-                        '<p>' +
-                        '<div> Username: ' + profile.username + '</div>' +
-                        '<div> Country: ' + profile.country +'</div>' +
-                        '<div> Playlist Count: ' + profile.playlist_count + '</div>' +
-                        '</p>' +
-                        '' +
-                        '</div>';
-            });
-        } else {
-            deauthorizeContainer.style.display = 'none';
-            authorizeContainer.style.display = 'block';
-        }
-    }
-</script>
 
 </body>
 </html>
+<script type="text/javascript">
+	//    function onHomeyReady(){
+	//        Homey.get('authorized', function (err, result) {
+	//            if(err) return setAuthorizationState(false);
+	//            setAuthorizationState(result);
+	//            Homey.ready();
+	//        });
+	//
+	//        Homey.on('authorized', function (authorized) {
+	//            setAuthorizationState(authorized);
+	//        });
+	//    }
+	//
+	//    function setAuthorizationState(authorized) {
+	//        var deauthorizeContainer = document.getElementById('deauthorize-container');
+	//        var authorizeContainer = document.getElementById('authorize-container');
+	//        var accountContainer = document.getElementById('account');
+	//
+	//        if (authorized) {
+	//            authorizeContainer.style.display = 'none';
+	//            accountContainer.innerHTML = '';
+	//            deauthorizeContainer.style.display = 'block';
+	//            Homey.api('GET', '/profile', function (err, profile) {
+	//                accountContainer.innerHTML = '<div>' +
+	//                    '<img src="' + profile.avatar + '" />' +
+	//                    '<p>' +
+	//                    '<div> Username: ' + profile.username + '</div>' +
+	//                    '<div> Country: ' + profile.country +'</div>' +
+	//                    '<div> Playlist Count: ' + profile.playlist_count + '</div>' +
+	//                    '</p>' +
+	//                    '' +
+	//                    '</div>';
+	//            });
+	//        } else {
+	//            deauthorizeContainer.style.display = 'none';
+	//            authorizeContainer.style.display = 'block';
+	//        }
+	//    }
+</script>
