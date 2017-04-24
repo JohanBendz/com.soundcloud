@@ -223,6 +223,7 @@ function getProfile(callback) {
 			type: 'profile',
 			username: profile.username,
 			avatar: profile.avatar_url,
+			permalink_url: profile.permalink_url,
 			country: profile.country || 'unknown',
 			plan: profile.plan,
 			playlist_count: profile.playlist_count,
