@@ -1,11 +1,13 @@
 'use strict';
 
+const Homey = require('homey');
+
 module.exports = [
 
 	{
 		method: 'GET',
 		path: '/oauth2',
-		fn: function (callback, args) {
+		fn: function (args, callback) {
 			Homey.app.startOAuth2(callback);
 		}
 	},
@@ -13,7 +15,7 @@ module.exports = [
 	{
 		method: 'POST',
 		path: '/deauthorize',
-		fn: function (callback, args) {
+		fn: function (args, callback) {
 			Homey.app.deauthorize(callback);
 		}
 	},
@@ -21,9 +23,9 @@ module.exports = [
 	{
 		method: 'GET',
 		path: '/profile',
-		fn: function (callback, args) {
+		fn: function (args, callback) {
 			Homey.app.getProfile(callback);
 		}
 	}
 
-]
+];

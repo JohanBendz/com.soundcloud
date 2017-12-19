@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
 <head>
+	<script type="text/javascript" src="/homey.js" data-origin="settings"></script>
 
 	<style type="text/css">
 		body {
@@ -100,6 +101,7 @@
 	</style>
 
 	<script type="text/javascript">
+		var Homey;
 		var bodyEl;
 		var avatarEl;
 		var nameEl;
@@ -126,7 +128,8 @@
 			deauthorizeEl.addEventListener('click', deauthorize);
 		});
 
-		function onHomeyReady() {
+		function onHomeyReady(instance) {
+			Homey = instance;
 			Homey.get('authorized', function (err, result) {
 				if (err) {
 					setAuthorizationState(false);
@@ -171,9 +174,9 @@
 				bodyEl.classList.add('loading');
 
 				Homey.api('GET', '/profile', function (err, profile) {
-					if (err) return error(err);
+				    bodyEl.classList.remove('loading');
 
-					bodyEl.classList.remove('loading');
+					if (err) return error(err);
 
 					if (profile.images
 						&& profile.images[0]
@@ -242,42 +245,3 @@
 
 </body>
 </html>
-<script type="text/javascript">
-	//    function onHomeyReady(){
-	//        Homey.get('authorized', function (err, result) {
-	//            if(err) return setAuthorizationState(false);
-	//            setAuthorizationState(result);
-	//            Homey.ready();
-	//        });
-	//
-	//        Homey.on('authorized', function (authorized) {
-	//            setAuthorizationState(authorized);
-	//        });
-	//    }
-	//
-	//    function setAuthorizationState(authorized) {
-	//        var deauthorizeContainer = document.getElementById('deauthorize-container');
-	//        var authorizeContainer = document.getElementById('authorize-container');
-	//        var accountContainer = document.getElementById('account');
-	//
-	//        if (authorized) {
-	//            authorizeContainer.style.display = 'none';
-	//            accountContainer.innerHTML = '';
-	//            deauthorizeContainer.style.display = 'block';
-	//            Homey.api('GET', '/profile', function (err, profile) {
-	//                accountContainer.innerHTML = '<div>' +
-	//                    '<img src="' + profile.avatar + '" />' +
-	//                    '<p>' +
-	//                    '<div> Username: ' + profile.username + '</div>' +
-	//                    '<div> Country: ' + profile.country +'</div>' +
-	//                    '<div> Playlist Count: ' + profile.playlist_count + '</div>' +
-	//                    '</p>' +
-	//                    '' +
-	//                    '</div>';
-	//            });
-	//        } else {
-	//            deauthorizeContainer.style.display = 'none';
-	//            authorizeContainer.style.display = 'block';
-	//        }
-	//    }
-</script>
